@@ -128,7 +128,7 @@ function predict() {
   var uri = '/predict?model=';
   model = $('#model_id option:selected').val();
   model = escape(model);
-  uri += model
+  uri += model;
   input_fields = $('.input');
   for (i = 0; i < input_fields.length; i++) {
     elem = input_fields[i];
