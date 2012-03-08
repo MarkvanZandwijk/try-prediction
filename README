@@ -34,6 +34,7 @@ Prediction!" sample exercise. You should have at least one trained model
 of your own to use with the Try Prediction app.
 
 Dependencies for the Python version:
+
 - Python 2.5 or later
 - Google App Engine
 - Google Python API Client
@@ -43,12 +44,14 @@ Dependencies for the Python version:
 - URI Templates for Python
 
 Dependencies for the Java version:
+
 - Java 5 (or higher) standard (SE) and enterprise (EE)
 - Google App Engine
 - Maven
 - Maven Plugin for App Engine
 
 Getting Started
+
 1. Download the latest tarfile available on the "Download" tab.
 2. Unpack the runtime package into a new directory.
 3. Customize the following files:
