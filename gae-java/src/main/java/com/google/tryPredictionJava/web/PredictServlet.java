@@ -52,29 +52,21 @@ import com.google.api.services.prediction.model.Input;
 import com.google.api.services.prediction.model.InputInput;
 import com.google.api.services.prediction.model.Output;
 
+import com.google.tryPredictionJava.web.IndexServlet;
+
 public class PredictServlet extends HttpServlet {
-
-  private static String scope =
-    "https://www.googleapis.com/auth/devstorage.read_write " +
-    "https://www.googleapis.com/auth/prediction";
-
-  @SuppressWarnings("unused")
-  private static final Logger log = 
-    LoggerFactory.getLogger(PredictServlet.class);
 
   @Override
   protected void doGet(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, 
                                                             IOException {
-    log.info("doGet in PredictServlet");
-
     Entity credentials = null;
     try {
       // Retrieve server credentials from app engine datastore.
       DatastoreService datastore = 
         DatastoreServiceFactory.getDatastoreService();
-      Key creds_key = KeyFactory.createKey("Credentials", "Credentials");
-      credentials = datastore.get(creds_key);
+      Key credsKey = KeyFactory.createKey("Credentials", "Credentials");
+      credentials = datastore.get(credsKey);
     } catch (EntityNotFoundException ex) {
       // If can't obtain credentials, send exception back to Javascript client.
       response.setContentType("text/html");
@@ -82,16 +74,13 @@ public class PredictServlet extends HttpServlet {
     }
 
     // Extract tokens from retrieved credentials.
-    String accessToken = (String) credentials.getProperty("accessToken");
-    Long expiresIn = (Long) credentials.getProperty("expiresIn");
-    String refreshToken = (String) credentials.getProperty("refreshToken");
+    AccessTokenResponse tokens = new AccessTokenResponse();
+    tokens.accessToken = (String) credentials.getProperty("accessToken");
+    tokens.expiresIn = (Long) credentials.getProperty("expiresIn");
+    tokens.refreshToken = (String) credentials.getProperty("refreshToken");
     String clientId = (String) credentials.getProperty("clientId");
     String clientSecret = (String) credentials.getProperty("clientSecret");
-    AccessTokenResponse tokens = new AccessTokenResponse();
-    tokens.accessToken = accessToken;
-    tokens.expiresIn = expiresIn;
-    tokens.refreshToken = refreshToken;
-    tokens.scope = scope;
+    tokens.scope = IndexServlet.scope;
 
     // Set up the HTTP transport and JSON factory
     HttpTransport httpTransport = new NetHttpTransport();
@@ -101,25 +90,22 @@ public class PredictServlet extends HttpServlet {
     String model_name = request.getParameter("model");
 
     // Parse model descriptions from models.json file.
-    FileInputStream in = new FileInputStream("rc/models.json");
-    JacksonFactory factory = new JacksonFactory();
-    JsonParser parser = factory.createJsonParser(in);
-    Map<String, Object> models = new HashMap<String, Object>();
-    parser.parse(models, null);
+    Map<String, Object> models = 
+      IndexServlet.parseJsonFile(IndexServlet.modelsFile);
 
     // Setup reference to user specified model description.
-    Map<String, Object> selected_model = 
+    Map<String, Object> selectedModel = 
       (Map<String, Object>) models.get(model_name);
     
     // Obtain model id (the name under which model was trained), 
     // and iterate over the model fields, building a list of Strings
     // to pass into the prediction request.
-    String model_id = (String) selected_model.get("model_id");
-    List<Object> fields = (List<Object>) selected_model.get("fields");
-    Iterator field_iter = fields.iterator();
+    String modelId = (String) selectedModel.get("model_id");
     List<Object> params = new ArrayList<Object>();
-    while (field_iter.hasNext()) {
-      Map<String, String> field = (Map<String, String>) field_iter.next();
+    List<Map<String, String> > fields = 
+      (List<Map<String, String> >) selectedModel.get("fields");
+    for (Map<String, String> field : fields) {
+      // This loop is populating the input csv values for the prediction call.
       String label = field.get("label");
       String value = request.getParameter(label);
       params.add(value);
@@ -142,7 +128,7 @@ public class PredictServlet extends HttpServlet {
     inputInput.setCsvInstance(params);
     input.setInput(inputInput);
     Output output = 
-      prediction.trainedmodels().predict(model_id, input).execute();
+      prediction.trainedmodels().predict(modelId, input).execute();
     response.getWriter().println(output.toPrettyString());
   }
 }

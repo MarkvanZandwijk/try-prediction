@@ -20,6 +20,7 @@ package com.google.tryPredictionJava.web;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.FileNotFoundException;
 
 import java.util.*;
 
@@ -49,11 +50,15 @@ import org.slf4j.LoggerFactory;
 
 public class IndexServlet extends HttpServlet {
 
-  /* Fill in your client ID and redirect URI here. */
-  //private static String clientId = "380979171725.apps.googleusercontent.com";
-  private static String redirectUri = 
+  // This URL needs to be configured to match the domain name
+  // at which this servel will be deployed.
+  public static final String redirectUri = 
     "http://try-prediction-java.appspot.com/auth_return";
-  private static String scope =
+
+  public static final String modelsFile = "rc/models.json";
+  public static final String secretsFile = "rc/client_secrets.json";
+
+  public static final String scope =
     "https://www.googleapis.com/auth/devstorage.read_write " +
     "https://www.googleapis.com/auth/prediction";
 
@@ -61,12 +66,24 @@ public class IndexServlet extends HttpServlet {
   private static final Logger log = 
     LoggerFactory.getLogger(IndexServlet.class);
 
+  public static Map<String, Object> parseJsonFile(String file) 
+    throws FileNotFoundException, IOException {
+    FileInputStream in = new FileInputStream(file);
+    JacksonFactory factory = new JacksonFactory();
+    JsonParser parser = factory.createJsonParser(in);
+    Map<String, Object> jsonContainer = new HashMap<String, Object>();
+
+    // JSON parser takes a callback function, which we don't use (so second
+    // arg is null).
+    parser.parse(jsonContainer, null);
+    in.close();
+    return jsonContainer;
+  }
+
   @Override
   protected void doGet(HttpServletRequest request, 
                        HttpServletResponse response) throws 
                          ServletException, IOException {
-    log.info("doGet for IndexServlet");
-
     Entity credentials = null;
     try {
       // Get user's email address.
@@ -83,18 +100,12 @@ public class IndexServlet extends HttpServlet {
       Key creds_key = KeyFactory.createKey("Credentials", "Credentials");
       credentials = ds.get(creds_key);
     } catch (EntityNotFoundException ex) {
-      // If server credentials don't exist, setup OAuth 2.0 request and
-      // redirect session to Google authorization page.
-
-      // Parse client secrets file json file.
-      FileInputStream in = new FileInputStream("rc/client_secrets.json");
-      JacksonFactory factory = new JacksonFactory();
-      JsonParser parser = factory.createJsonParser(in);
-      Map<String, Object> container = new HashMap<String, Object>();
-      parser.parse(container, null);
-      Map<String, String> secrets = 
-        (Map<String, String>) container.get("installed");
-      String clientId = secrets.get("client_id");
+      // Server credentials don't exist so read client secrets from
+      // JSON file, formulate OAuth 2.0 request and redirect session to 
+      // Google authorization page.
+      Map<String, String> clientSecrets = 
+        (Map<String, String>) parseJsonFile(secretsFile).get("installed");
+      String clientId = clientSecrets.get("client_id");
 
       GoogleAuthorizationRequestUrl requestUrl = 
         new GoogleAuthorizationRequestUrl(clientId, redirectUri, scope);
@@ -104,11 +115,7 @@ public class IndexServlet extends HttpServlet {
     }
 
     // Parse model descriptions from models.json file.
-    FileInputStream in = new FileInputStream("rc/models.json");
-    JacksonFactory factory = new JacksonFactory();
-    JsonParser parser = factory.createJsonParser(in);
-    Map<String, Object> models = new HashMap<String, Object>();
-    parser.parse(models, null);
+    Map<String, Object> models = parseJsonFile(modelsFile);
     request.setAttribute("models", models);
 
     // Set selected model name, if specified by user.
@@ -124,7 +131,6 @@ public class IndexServlet extends HttpServlet {
                        HttpServletResponse response) throws 
                          ServletException, IOException {
     // Post logic is same as get (posts are used to switch selected model.
-    log.info("doPost for IndexServlet");
     doGet(request, response);
   }
 

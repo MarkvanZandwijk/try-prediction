@@ -51,23 +51,20 @@
         <%@ page import="java.util.List" %>
         <%@ page import="java.util.Iterator" %>
         <%
-          Map<String, Object> selected_model = null;
-          String selected_model_name = 
+          Map<String, Object> selectedModel = null;
+          String selectedModelName = 
             (String) request.getAttribute("selected_model_name");
-          String selected_model_desc = "";
+          String selectedModelDesc = "";
           Map<String, Object> models = 
             (Map<String, Object>) request.getAttribute("models"); 
           String user_email = (String) request.getAttribute("user_email");
     
           // Iterate model description data, building pull-down menu
           // and display selected model's description data.
-          Iterator model_iter = models.entrySet().iterator();
-          List<String> users = null;
-          while (model_iter.hasNext()) {
-            Map.Entry entry = (Map.Entry) model_iter.next();
-            String model_name = (String) entry.getKey();
+          for (Map.Entry entry : models.entrySet()) {
+            String modelName = (String) entry.getKey();
             Map<String, Object> model = (Map<String, Object>) entry.getValue();
-            String model_id = (String) model.get("model_id");
+            String modelId = (String) model.get("model_id");
             Map<String, Integer> user_list = 
               (Map<String, Integer>) model.get("user_list");
             if ((user_list.size() > 0) && 
@@ -75,28 +72,27 @@
               continue;
             }
             // Mark selected model for generating input fields below.
-            if (selected_model_name == null) {
-              selected_model_name = model_name;
-              selected_model = model;
+            if (selectedModelName == null) {
+              selectedModelName = modelName;
+              selectedModel = model;
 	    }
-            String selected_marker = "";
-	    if (model_name.equals(selected_model_name)) {
-              selected_model_name = model_name;
-              selected_model = model;
-              selected_marker = " selected";
-              selected_model_desc = (String) model.get("description");
+            String selectedMarker = "";
+	    if (modelName.equals(selectedModelName)) {
+              selectedModelName = modelName;
+              selectedModel = model;
+              selectedMarker = " selected";
+              selectedModelDesc = (String) model.get("description");
             }
-            out.println("<option value=\"" + model_name + "\"" + 
-                        selected_marker + ">" + model_name + "</option>");
+            out.println("<option value=\"" + modelName + "\"" + 
+                        selectedMarker + ">" + modelName + "</option>");
           }
           out.println("</select><span class=\"help\">" + 
-                      selected_model_desc + "</span></td></tr>");
+                      selectedModelDesc + "</span></td></tr>");
 
           // Display selected model's input fields.
-          List<Object> fields = (List<Object>) selected_model.get("fields");
-          Iterator field_iter = fields.iterator();
-          while (field_iter.hasNext()) {
-            Map<String, String> field = (Map<String, String>) field_iter.next();
+          List<Map<String, String> > fields =
+            (List<Map<String, String> >) selectedModel.get("fields");
+          for (Map<String, String> field : fields) {
             String label = field.get("label");
             String help = field.get("help");
             String rows = field.get("rows");
@@ -104,7 +100,7 @@
             String cols = field.get("cols");
             Integer num_cols = Integer.parseInt(cols);
 	    out.println("<tr><td><div class=\"label\">" + label + 
-                       ":</div></td><td>");
+                        ":</div></td><td>");
             if (num_rows > 1) {
               out.println("<textarea cols=\"" + num_cols + "\" rows=\"" + 
                 num_rows + "\" id=\"" + label + 

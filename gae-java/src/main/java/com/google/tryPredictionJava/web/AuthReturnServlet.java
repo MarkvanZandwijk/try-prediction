@@ -40,23 +40,16 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.auth.oauth2.draft10.AccessTokenResponse;
 import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessTokenRequest.GoogleAuthorizationCodeGrant;
 
-import com.google.tryPredictionJava.model.Message;
-import com.google.tryPredictionJava.server.MessageRepository;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+
+import com.google.tryPredictionJava.web.IndexServlet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthReturnServlet extends HttpServlet {
-
-  // Set client id, client secret and redirect URI here.
-  //private static String clientId = "380979171725.apps.googleusercontent.com";
-  //private static String clientSecret = "SZSniMunJTksVy3V8mVX-G6B";
-
-  private static String redirectUri = 
-    "http://try-prediction-java.appspot.com/auth_return";
 
   @SuppressWarnings("unused")
   private static final Logger log = 
@@ -69,16 +62,12 @@ public class AuthReturnServlet extends HttpServlet {
 
     log.info ("doGet for /auth_return service");
 
-    // Parse client secrets file json file.
-    FileInputStream in = new FileInputStream("rc/client_secrets.json");
-    JacksonFactory factory = new JacksonFactory();
-    JsonParser parser = factory.createJsonParser(in);
-    Map<String, Object> container = new HashMap<String, Object>();
-    parser.parse(container, null);
-    Map<String, String> secrets = 
-      (Map<String, String>) container.get("installed");
-    String clientId = secrets.get("client_id");
-    String clientSecret = secrets.get("client_secret");
+    // Parse client secrets json file and extract info needed for OAuth dance.
+    Map<String, String> clientSecrets = 
+      (Map<String, String>) IndexServlet.parseJsonFile(IndexServlet
+                            .secretsFile).get("installed");
+    String clientId = clientSecrets.get("client_id");
+    String clientSecret = clientSecrets.get("client_secret");
 
     // Read the auth code from URL.
     String code = request.getParameterValues("code")[0];
@@ -89,8 +78,8 @@ public class AuthReturnServlet extends HttpServlet {
 
     // Exchange auth code for access and refresh tokens
     AccessTokenResponse tokens = new GoogleAuthorizationCodeGrant(
-      transport, jsonFactory, clientId, clientSecret, code, redirectUri)
-      .execute();
+      transport, jsonFactory, clientId, clientSecret, code, 
+      IndexServlet.redirectUri).execute();
 
     // Populate credentials object and store in app engine datastore.
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -102,7 +91,7 @@ public class AuthReturnServlet extends HttpServlet {
     credentials.setProperty("clientSecret", clientSecret);
     datastore.put(credentials);
 
-    // With server credetials in hand, redirect session to main page.
+    // With server credentials in hand, redirect session to main page.
     response.sendRedirect("/");
   }
 }

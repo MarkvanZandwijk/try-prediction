@@ -38,7 +38,20 @@ from oauth2client.client import OAuth2WebServerFlow
 SCOPE = ('https://www.googleapis.com/auth/devstorage.read_write ' +
          'https://www.googleapis.com/auth/prediction')
 USER_AGENT = 'try-prediction/1.0'
-DEFAULT_MODEL = "Language Detection"
+DEFAULT_MODEL = 'Language Detection'
+SECRETS_FILE = 'rc/client_secrets.json'
+MODELS_FILE = 'rc/models.json'
+
+
+def parse_json_file(file):
+  '''Utility function to open, read, and parse the contents of
+     a file containing text encoded as a JSON document, and
+     return resulting json object to caller.
+  '''
+  f = open(file, 'r')
+  json_str = f.read()
+  f.close()
+  return json.loads(json_str)
 
 class HomePage(webapp.RequestHandler):
   '''This class renders the main home page for the "Try Prediction" app.'''
@@ -54,15 +67,11 @@ class HomePage(webapp.RequestHandler):
     # Fetch stored server credentials.
     credentials = StorageByKeyName(CredentialsModel, USER_AGENT,
                                    'credentials').locked_get()
-    #logging.info('creds from home.py:' + str(credentials))
 
     # If server credentials not found, trigger OAuth2.0 web server flow.
     if not credentials or credentials.invalid:
       # Read and parse client secrets JSON file.
-      f = open('rc/client_secrets.json', 'r')
-      secrets_str = f.read()
-      f.close()
-      secrets = json.loads(secrets_str)
+      secrets = parse_json_file(SECRETS_FILE)
 
       client_id = secrets['installed']['client_id']
       client_secret = secrets['installed']['client_secret']
@@ -88,10 +97,7 @@ class HomePage(webapp.RequestHandler):
     selected_model = self.request.get('model', DEFAULT_MODEL)
 
     # Read and parse model description JSON file.
-    f = open('rc/models.json', 'r')
-    models_str = f.read()
-    f.close()
-    models = json.loads(models_str)
+    models = parse_json_file(MODELS_FILE)
 
     # Set django template and render home page.
     template_values = {

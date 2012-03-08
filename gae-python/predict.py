@@ -24,6 +24,8 @@ import logging
 import urllib
 from apiclient.discovery import build
 from google.appengine.ext import webapp
+from home import parse_json_file
+from home import MODELS_FILE
 from home import USER_AGENT
 from oauth2client.appengine import CredentialsModel
 from oauth2client.appengine import StorageByKeyName
@@ -31,10 +33,9 @@ from oauth2client.file import Storage
 
 # You need to set your API key here, which is obtained from the APIs console,
 # at http://code.google.com/apis/console.
-API_KEY = 'AIzaSyBitlS_n6A5bWgG91XRqSFIYAm5MrCNpK4'
+API_KEY = 'YOUR_API_KEY_GOES_HERE'
 ERR_TAG = '<HttpError>'
 ERR_END = '</HttpError>'
-STAGING_URL = 'https://www-googleapis-staging.sandbox.google.com/apiz'
 
 class PredictAPI(webapp.RequestHandler):
   '''This class handles Ajax prediction requests, i.e. not user initiated
@@ -48,7 +49,6 @@ class PredictAPI(webapp.RequestHandler):
       # raise an exception if credentials not found.
       credentials = StorageByKeyName(CredentialsModel, USER_AGENT, 
                                     'credentials').locked_get()
-      #logging.info('creds from predict.py:' + str(credentials))
       if not credentials or credentials.invalid:
         raise Exception('missing OAuth 2.0 credentials')
 
@@ -59,13 +59,10 @@ class PredictAPI(webapp.RequestHandler):
       papi = service.trainedmodels()
     
       # Read and parse JSON model description data.
-      model_name = self.request.get('model')
-      f = open('rc/models.json', 'r')
-      models_str = f.read()
-      f.close()
-      models = json.loads(models_str)
+      models = parse_json_file(MODELS_FILE)
 
       # Get reference to user's selected model.
+      model_name = self.request.get('model')
       model = models[model_name]
 
       # Build prediction data (csvInstance) dynamically based on form input.

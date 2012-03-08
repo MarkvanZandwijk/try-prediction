@@ -43,7 +43,6 @@ function draw_chart() {
   data.addRows(Chart_rows);
   
   // Set chart options
-  //var options = {'title'  : 'Prediction Results',
   var options = {'title'  : '',
                  'width'  : 600,
                  'height' : 400};
@@ -71,10 +70,11 @@ function draw_chart() {
 // exception: errors are wrapped in a special HttpError tag to make it
 // easy to distinguish them on the client side.
 function response(resp) {
-  //alert(resp);
   err_tag_len = ERR_TAG.length;
   if (resp.substr(0, err_tag_len) == ERR_TAG) {
     // We received an error - display the error to the user and return.
+    // The following substr() peels off the leading and trailing <HttpError>
+    // tags for user-friendly presentation of the contained error message.
     err_str = resp.substr(err_tag_len, resp.length - (err_tag_len * 2) - 1);
     $('#prediction_result').text('ERROR:' + err_str);
     return;
@@ -125,7 +125,7 @@ function predict() {
   $('#switch_chart_link').text('');
 
   // Build URI params containing selected model and input data.
-  var uri = '/predict?model=' 
+  var uri = '/predict?model=';
   model = $('#model_id option:selected').val();
   model = escape(model);
   uri += model
@@ -134,7 +134,6 @@ function predict() {
     elem = input_fields[i];
     uri += '&' + escape(elem.id) + '=' + escape(elem.value);
   }
-  //alert(uri);
 
   // Send the prediction call in a jQuery AJAX request. The response
   // will be fielded asynchronously by the response() callback function.
@@ -159,7 +158,6 @@ function change_model(elem) {
 // Callback function called when Google Charts Javascript API is loaded.
 // Not currently used but available for debugging purposes.
 function charts_ready() {
-  //alert('charts api loaded');
 }
 
 // Process keydown event - this is used to automatically trigger a 

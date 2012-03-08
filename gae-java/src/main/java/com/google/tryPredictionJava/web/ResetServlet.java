@@ -19,9 +19,7 @@
 package com.google.tryPredictionJava.web;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.io.File;
 import java.io.FileInputStream;
 
@@ -41,8 +39,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.auth.oauth2.draft10.AccessTokenResponse;
 import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessTokenRequest.GoogleAuthorizationCodeGrant;
 
-import com.google.tryPredictionJava.model.Message;
-import com.google.tryPredictionJava.server.MessageRepository;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -52,23 +48,17 @@ import org.slf4j.LoggerFactory;
 
 public class ResetServlet extends HttpServlet {
 
-  @SuppressWarnings("unused")
-  private static final Logger log = 
-    LoggerFactory.getLogger(IndexServlet.class);
-
   @Override
   protected void doGet(HttpServletRequest request, 
                        HttpServletResponse response) throws 
                          ServletException, IOException {
 
-    log.info("doGet for /reset service");
-
     // Store empty credentials in app engine datastore. This wipes out
     // the server credentials so that the next user to hit the site will
     // trigger the OAuth 2.0 authorization sequence.
     DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    Key creds_key = KeyFactory.createKey("Credentials", "Credentials");
-    datastore.delete(creds_key);
+    Key credsKey = KeyFactory.createKey("Credentials", "Credentials");
+    datastore.delete(credsKey);
 
     // Server credentials cleared - redirect session to the main page.
     response.sendRedirect("/");
