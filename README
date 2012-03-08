@@ -57,18 +57,27 @@ Getting Started
 2. Unpack the runtime package into a new directory.
 
 3. Customize the following files:
+
    - In shared/rc/client_secrets.json, replace the placeholder strings 
      with your actual client id and client secret from the Google APIs console.
+
    - In shared/rc/models.json, enter information about the model(s) you 
      would like to use , following the format shown for the two sample models.
+
    - Add your redirect URI into the Dev Console, which should be your base
      URI + /auth_return, e.g. http://your-app-name.appspot.com/auth_return. 
      If you miss this step, you'll get a 'redirect_uri_mismatch' error 
      during initial authorization of the shared server credentials.
 
 4. Build and deploy your app:
-   - For Python: use the Google App Engine tools.
-   - For Java: use the Maven plugin for Google App Engine (mvn gae:deploy).
+
+   - For Python: modify the "application:" line in your app.yaml file to 
+     reflect your chosen app name and use the Google App Engine tools to 
+     deploy your app.
+
+   - For Java: modify the contents of the "name" XML element in your 
+     pom.xml file to reflect your chosen app name and use the Maven plugin 
+     for Google App Engine to deploy your app (mvn gae:deploy).
 
 5. The first time you access your app, it will step you through the login 
    and OAuth 2.0 sequence, however, all access thereafter, by you or anyone 
