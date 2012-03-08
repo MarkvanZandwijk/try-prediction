@@ -31,9 +31,6 @@ from oauth2client.appengine import CredentialsModel
 from oauth2client.appengine import StorageByKeyName
 from oauth2client.file import Storage
 
-# You need to set your API key here, which is obtained from the APIs console,
-# at http://code.google.com/apis/console.
-API_KEY = 'YOUR_API_KEY_GOES_HERE'
 ERR_TAG = '<HttpError>'
 ERR_END = '</HttpError>'
 
