@@ -70,6 +70,12 @@ class HomePage(webapp.RequestHandler):
 
     # If server credentials not found, trigger OAuth2.0 web server flow.
     if not credentials or credentials.invalid:
+      # If no credentials and no user logged in, redirect to the reset, 
+      # which will force a login to make sure this user has permission
+      # to initialize the shared server credentials.
+      if not user:
+        self.redirect("/reset")
+
       # Read and parse client secrets JSON file.
       secrets = parse_json_file(SECRETS_FILE)
 
