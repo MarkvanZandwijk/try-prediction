@@ -65,7 +65,7 @@ Getting Started
      would like to use , following the format shown for the two sample models.
 
    - Java only: edit the file
-     gae-java/src/main/java/com/google/tryPredictionJava/web/IndexServlet?.java 
+     gae-java/src/main/java/com/google/tryPredictionJava/web/IndexServlet.java 
      to specify your redirect URI, which should be your app's base URI + 
      /auth_return, e.g. http://your-app-name.appspot.com/auth_return.
 
@@ -73,11 +73,6 @@ Getting Started
      redirect URIs in the "API Access" tab of the APIs Console. If you miss 
      this step, you'll get a 'redirect_uri_mismatch' error during initial 
      authorization of the shared server credentials.
-
-   - Add your redirect URI into the Dev Console, which should be your base
-     URI + /auth_return, e.g. http://your-app-name.appspot.com/auth_return. 
-     If you miss this step, you'll get a 'redirect_uri_mismatch' error 
-     during initial authorization of the shared server credentials.
 
 4. Build and deploy your app:
 
